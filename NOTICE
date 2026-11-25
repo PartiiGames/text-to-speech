@@ -1,0 +1,53 @@
+text-to-speech
+Copyright (c) 2026 Partii Games LLC
+Licensed under either of the MIT license (LICENSE-MIT) or the Apache License, Version 2.0 (LICENSE-APACHE), at your
+option.
+
+-------------------------------------------------------------------------------
+Ported code
+-------------------------------------------------------------------------------
+src/model.rs re-implements, on burn, the inference path of VITS as Piper trains and exports it:
+  - VITS, "Conditional Variational Autoencoder with Adversarial Learning for End-to-End Text-to-Speech"
+    https://github.com/jaywalnut310/vits  (MIT License, Copyright (c) 2021 Jaehyeon Kim)
+    models.py (TextEncoder, StochasticDurationPredictor, ResidualCouplingBlock, Generator), attentions.py
+    (relative-position multi-head attention), modules.py (DDSConv, WN, ConvFlow, ResBlock2, ElementwiseAffine),
+    transforms.py (the rational-quadratic spline, ported in rq_spline_inverse).
+  - Piper (the MIT-licensed original, not piper1-gpl)
+    https://github.com/rhasspy/piper  (MIT License, Copyright (c) 2022 Michael Hansen)
+    src/python/piper_train/vits (the training copy of VITS whose ONNX export this crate mirrors) and the phoneme id
+    layout (^ _ p _ ... $) used by Speaker::phoneme_ids.
+No code from OHF-Voice/piper1-gpl (piper-tts >= 1.3, GPL) is used, in the crate or in its test tools.
+
+The MIT license text of both projects:
+  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+  documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+  to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above
+  copyright notice and this permission notice shall be included in all copies or substantial portions of the
+  Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+  LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+  SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+-------------------------------------------------------------------------------
+Voices (not bundled: the crate takes the weights as bytes; nothing here contains them)
+-------------------------------------------------------------------------------
+en_US-hifi_tts_92-medium
+  Source:   https://huggingface.co/rhasspy/piper-voices  (repo rhasspy/piper-voices)
+            revision 5ec43b186ef915a195d3ddbcfd9916e76c503c3f
+            en/en_US/hifi_tts_92/medium/en_US-hifi_tts_92-medium.onnx
+              sha256 14d19c09e5b08c9416ef856fd669118f91813b0772714e3d989adbd70f05ff91  (63,221,984 bytes)
+            en/en_US/hifi_tts_92/medium/en_US-hifi_tts_92-medium.onnx.json
+              sha256 e593b75cb2795f02e3094831754746d1a9a5abfeb1f05f948c8d1753874e288b  (6,409 bytes)
+            https://huggingface.co/rhasspy/piper-voices/resolve/5ec43b186ef915a195d3ddbcfd9916e76c503c3f/en/en_US/hifi_tts_92/medium/en_US-hifi_tts_92-medium.onnx
+  Weights:  CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/), trained from scratch by the Piper project
+            (model card: en/en_US/hifi_tts_92/medium/MODEL_CARD in the repo above).
+  Data:     Hi-Fi Multi-Speaker English TTS Dataset (Hi-Fi TTS), speaker 92, https://www.openslr.org/109/
+            CC-BY-4.0. Bakhturina, Lavrukhin, Ginsburg, Zhang, "Hi-Fi Multi-Speaker English TTS Dataset", 2021.
+  Converted by tools/convert.py (same tensors, renamed; f32) to:
+            served at https://api.partii.games/v1/ai/text-to-speech/<sha256>/<file> (staging: api-staging.partii.games)
+            model.safetensors  sha256 5b560a49924b7a80065638c4404eee086ee13c26dd6166907c580f863dad693e
+            voice.json         sha256 7b917e9613a059540a370a1231dddb3e92adb1b92c440671f853dc798981d557  (the .onnx.json plus "partii_arch")
+  Attribution to show wherever the voice is used: "Voice: Piper en_US-hifi_tts_92-medium (CC-BY-4.0), trained on
+  Hi-Fi TTS (CC-BY-4.0, openslr.org/109)."

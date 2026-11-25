@@ -1,0 +1,62 @@
+# text-to-speech (lib text_to_speech): Piper VITS voices (en_US-hifi_tts_92-medium first) on burn: flex (the CPU path) and wgpu (WebGPU in
+# the browser and app, Metal/Vulkan natively). wasm and wgpu build but are untested; no C/C++, no ONNX Runtime. Open source (MIT OR Apache-2.0):
+# no Partii-internal deps, builds against stock burn 0.22.1 (the platform/ai workspace's vendor/ patch is not needed;
+# farm.sh checks a standalone build). Weights are never bundled: the crate takes bytes (NOTICE, README).
+[package]
+name = "text-to-speech"
+version = "0.1.0"
+edition = "2024"
+authors = ["Partii Games"]
+repository = "https://github.com/PartiiGames/text-to-speech"
+homepage = "https://partii.games"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+description = "Real-time, on-device text to speech: Piper VITS voices on burn, native CPU. First sentence of audio in 65 ms on 4 desktop CPU threads; sentence streaming with cancellation. wasm and wgpu/WebGPU paths build but are untested."
+readme = "README.md"
+keywords = ["tts", "realtime", "streaming", "piper", "vits"]
+categories = ["multimedia::audio"]
+include = ["src/**", "examples/**", "tools/*.py", "Cargo.toml", "README.md", "NOTICE", "LICENSE-MIT", "LICENSE-APACHE"]
+
+[lib]
+name = "text_to_speech"
+crate-type = ["rlib"]
+
+[dependencies]
+# burn =0.22.1 exactly (Partii's ai-core rule); CPU = flex (Device::flex()); GPU = wgpu + fusion
+burn = { version = "=0.22.1", default-features = false, features = ["std", "flex"] }
+# flex's `simd` turns on gemm's wasm simd128 kernel; burn's `flex` feature alone leaves it off
+burn-flex = { version = "=0.22.1", default-features = false, features = ["std"] }
+safetensors = "0.5"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# the bench binary only (feature `bench`)
+pollster = { version = "0.4", optional = true }
+# text -> IPA -> ids (feature `phonemes`: Speaker::speak_text); the crate works without it, on ids
+text-to-phonemes = { version = "0.1", optional = true }
+
+[dev-dependencies]
+pollster = "0.4"
+sha2 = "0.10"
+
+[features]
+default = ["flex-simd", "flex-rayon"]
+flex-simd = ["burn-flex/simd"]
+# threads for flex natively (on wasm32-unknown-unknown rayon runs on the calling thread)
+flex-rayon = ["burn-flex/rayon"]
+# EXPERIMENTAL: the wgpu device (WebGPU in the browser, Metal/Vulkan/D3D12 natively). It builds; it is not yet run or
+# checked against the reference.
+gpu = ["burn/wgpu", "burn/fusion", "burn/webgpu"]
+# the speak_bench binary (farm numbers and parity dumps)
+bench = ["dep:pollster"]
+# Speaker::speak_text: English text in, sentence by sentence (the text-to-phonemes crate, pure Rust)
+phonemes = ["dep:text-to-phonemes"]
+
+[[bin]]
+name = "speak_bench"
+path = "src/bin/speak_bench.rs"
+required-features = ["bench"]
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+getrandom = { version = "0.3", features = ["wasm_js"] }
+getrandom02 = { package = "getrandom", version = "0.2", features = ["js"] }
+getrandom04 = { package = "getrandom", version = "0.4", features = ["wasm_js"] }
