@@ -1,4 +1,4 @@
-//! Native bench + parity dumps for text-to-speech. Prints a timestamped line per step (the farm's progress signal).
+//! Native bench + parity dumps for text-to-speech. Prints a timestamped line per step.
 //!   speak_bench <voice_dir> <ids.json> <cpu|wgpu> <out_dir> parity
 //!       deterministic synth of every item -> <out_dir>/burn_<name>.{audio,w,stats,z}.f32 (tools/parity.py cmp)
 //!   speak_bench <voice_dir> <ids.json> <cpu|wgpu> <out_dir> speed <label> [reps]

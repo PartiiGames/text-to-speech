@@ -1,7 +1,7 @@
 # text-to-speech (lib text_to_speech): Piper VITS voices (en_US-hifi_tts_92-medium first) on burn: flex (the CPU path) and wgpu (WebGPU in
 # the browser and app, Metal/Vulkan natively). wasm and wgpu build but are untested; no C/C++, no ONNX Runtime. Open source (MIT OR Apache-2.0):
 # no Partii-internal deps, builds against stock burn 0.22.1 (the platform/ai workspace's vendor/ patch is not needed;
-# farm.sh checks a standalone build). Weights are never bundled: the crate takes bytes (NOTICE, README).
+# a standalone build is checked in CI). Weights are never bundled: the crate takes bytes (NOTICE, README).
 [package]
 name = "text-to-speech"
 version = "0.1.0"
@@ -46,7 +46,7 @@ flex-rayon = ["burn-flex/rayon"]
 # EXPERIMENTAL: the wgpu device (WebGPU in the browser, Metal/Vulkan/D3D12 natively). It builds; it is not yet run or
 # checked against the reference.
 gpu = ["burn/wgpu", "burn/fusion", "burn/webgpu"]
-# the speak_bench binary (farm numbers and parity dumps)
+# the speak_bench binary (timings and parity dumps)
 bench = ["dep:pollster"]
 # Speaker::speak_text: English text in, sentence by sentence (the text-to-phonemes crate, pure Rust)
 phonemes = ["dep:text-to-phonemes"]

@@ -60,15 +60,13 @@ Inputs `input [1, T] i64`, `input_lengths [1]`, `scales [3]` = (noise_scale, len
 and the dilations, strides and paddings go into the voice json's `partii_arch` (defaults = this voice).
 
 ## Converting a voice
-`tools/convert.py` (Python, needs the `onnx`, `numpy` and `safetensors` packages; we run it on the farm only, never
+`tools/convert.py` (Python, needs the `onnx`, `numpy` and `safetensors` packages; we run it at build time only, never
 in the product): `python -I tools/convert.py voice.onnx voice.onnx.json model.safetensors voice.json`. The test tools
 `tools/parity.py` (onnxruntime, the reference) and `tools/phonemize.py` (piper-phonemize / espeak-ng) are
 test-only too; none of them is a crate dependency.
 
-## Farm
-`bash platform/ai/addons/text-to-speech/farm.sh` (from the repo root; `SPEAK_STEPS` picks steps): download + sha256 check,
-convert, phonemize (piper-tts / espeak-ng, **test-only**), onnxruntime reference (**test-only**), cargo test, bench
-build, parity, speed at 1 and 4 threads, wasm32 lib build. Weights stay out of git (job cache).
+## Testing
+`cargo test` (add `--features phonemes` for the text path). `cargo run --release --bin speak_bench` prints step timings and parity dumps against Piper's onnxruntime output.
 
 ## Numbers (x86_64 Linux build machine, burn-flex CPU)
 **Parity** vs onnxruntime on the original .onnx, noise_scale = noise_w = 0, 3 inputs (41 / 99 / 325 phoneme ids):
